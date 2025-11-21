@@ -1,38 +1,188 @@
-.App {
-  text-align: center;
+:root {
+  --clr-bg: #040a1f;
+  --clr-bg-soft: #0f1832;
+  --clr-card: rgba(22, 30, 53, 0.9);
+  --clr-card-hover: rgba(36, 46, 78, 0.95);
+  --clr-border: rgba(255, 255, 255, 0.08);
+  --clr-text: #f5f6fa;
+  --clr-text-muted: rgba(255, 255, 255, 0.7);
+  --clr-accent: #ff5f6d;
+  --clr-accent-2: #ffc371;
+  --shadow-soft: 0 25px 65px rgba(5, 8, 20, 0.55);
 }
 
-.App-logo {
-  height: 40vmin;
+* {
+  scroll-behavior: smooth;
+}
+
+.app {
+  min-height: 100vh;
+  background: radial-gradient(120% 120% at 50% 0%, #11204a 0%, #050914 55%, #030712 100%);
+  color: var(--clr-text);
+  padding: 140px clamp(18px, 4vw, 48px) 80px;
+  position: relative;
+}
+
+.app::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='160' height='160' viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='white' fill-opacity='0.025'%3E%3Ccircle cx='1' cy='1' r='1'/%3E%3Ccircle cx='81' cy='41' r='1'/%3E%3Ccircle cx='121' cy='101' r='1'/%3E%3Ccircle cx='41' cy='121' r='1'/%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.8;
   pointer-events: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+.app > .MuiContainer-root {
+  position: relative;
+  z-index: 1;
+  padding-inline: 0;
+  max-width: 1240px;
+}
+
+@media (max-width: 700px) {
+  .app {
+    padding-top: 110px;
+    padding-bottom: 70px;
   }
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.pageTitle {
+  text-transform: uppercase;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Montserrat", sans-serif;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  letter-spacing: 0.18em;
+  padding: 10px 34px;
+  border-radius: 999px;
+  margin-inline: auto;
+  margin-bottom: 32px;
+  background: linear-gradient(120deg, rgba(255, 95, 109, 0.18), rgba(255, 195, 113, 0.1));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--clr-text);
+  box-shadow: inset 0 0 25px rgba(255, 255, 255, 0.04);
+}
+
+.pageTitle::after {
+  content: "";
+  width: 48px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--clr-accent), transparent);
+  display: inline-flex;
+  margin-left: 16px;
+}
+
+.pageHero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  text-align: center;
+  gap: 10px;
+  margin: 0 auto clamp(20px, 3vw, 40px);
+  max-width: 720px;
+  position: relative;
+  z-index: 1;
 }
 
-.App-link {
-  color: #61dafb;
+.pageHero--left {
+  align-items: flex-start;
+  text-align: left;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.pageSubtitle {
+  margin: 0;
+  font-family: "Outfit", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  font-size: clamp(0.7rem, 2vw, 0.95rem);
+  color: #f8f9fc;
+  font-weight: 600;
+  opacity: 0.95;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.search {
+  position: relative;
+  padding: clamp(24px, 4vw, 40px);
+  background: rgba(6, 12, 30, 0.65);
+  border: 1px solid var(--clr-border);
+  border-radius: 28px;
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(16px);
+}
+
+.searchBox .MuiInputBase-root {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border-radius: 16px;
+}
+
+.searchBox label {
+  color: var(--clr-text-muted);
+}
+
+.searchControls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.searchControls > *:first-child {
+  flex: 1;
+}
+
+.searchControls .MuiButton-root {
+  flex-shrink: 0;
+  padding-inline: 20px;
+}
+
+.search .MuiTabs-root {
+  margin-top: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.search .MuiTab-root {
+  text-transform: none !important;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.search .MuiButton-root {
+  border-radius: 16px;
+  padding-inline: 24px;
+  font-weight: 600;
+  background: linear-gradient(120deg, var(--clr-accent), var(--clr-accent-2));
+}
+
+.noResults {
+  margin-top: 40px;
+  padding: 32px;
+  text-align: center;
+  border-radius: 24px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  color: var(--clr-text-muted);
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+@media (max-width: 640px) {
+  .search {
+    padding: 20px;
+    border-radius: 20px;
   }
-  to {
-    transform: rotate(360deg);
+
+  .searchControls {
+    flex-direction: column;
+  }
+
+  .searchControls .MuiButton-root {
+    width: 100%;
+  }
+
+  .pageHero--left {
+    align-items: center;
+    text-align: center;
   }
 }
