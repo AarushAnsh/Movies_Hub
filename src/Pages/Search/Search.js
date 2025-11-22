@@ -104,7 +104,7 @@ const Search = () => {
 
         {/* Results */}
         {hasSearched && content && content.length === 0 ? (
-          <div className="noResults">No titles found for “{searchText.trim()}”</div>
+          <div className="noResults">No titles found for "{searchText.trim()}"</div>
         ) : (
           <div className="trending">
             {content &&

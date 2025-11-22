@@ -64,7 +64,6 @@ const Movie = () => {
         <CustomPagination page={page} setPage={setPage} numOfPages={numOfPages} />
       }
     </div>
-    
   )
 }
 

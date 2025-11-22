@@ -4,8 +4,6 @@ import CustomPagination from "../../Components/Pagination/CustomPagination";
 import Genres from "../../Components/Genres/Genres";
 import useGenres from "../../Hooks/UseGenre";
 
-
-
 const Series = () => {
   const [page, setPage] = useState(1);
   const [content, setContent] = useState([]);
