@@ -1,33 +1,59 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { CircularProgress, Box } from '@mui/material';
 import SingleContent from '../../Components/SingleContent/SingleContent';
 import './Trending.css';
 import CustomPagination from '../../Components/Pagination/CustomPagination';
+import { API_KEY } from '../../config';
 
 const Trending = () => {
 
   const[content,setContent]=useState([]);
   const[page,setPage]=useState(1);
   const[loading,setLoading]=useState(true);
-  const API_KEY = "dc5e54f47e1adf658c0fca36e5332e8e";
+  const abortControllerRef = useRef(null);
   
    async function fetchTrending() {
+     // Cancel previous request if exists
+     if (abortControllerRef.current) {
+       abortControllerRef.current.abort();
+     }
+     
+     abortControllerRef.current = new AbortController();
      setLoading(true);
+     
      try {
        const url= `https://api.themoviedb.org/3/trending/all/day?api_key=${API_KEY}&page=${page}`;
-       const response = await fetch(url);
+       const response = await fetch(url, {
+         signal: abortControllerRef.current.signal,
+         cache: 'default', // Browser caching for faster subsequent loads
+       });
+       
+       if (!response.ok) throw new Error('Network response was not ok');
+       
        const data = await response.json();
        
        // Filter only movies and TV shows right after fetch
        const filtered = (data.results || []).filter((c) => c.media_type === "movie" || c.media_type === "tv");
        setContent(filtered);
      } catch (error) {
-       console.error("Error fetching trending:", error);
-       setContent([]);
+       if (error.name !== 'AbortError') {
+         console.error("Error fetching trending:", error);
+         setContent([]);
+       }
      } finally {
        setLoading(false);
+       abortControllerRef.current = null;
      }
    }
+   
+   // Cleanup on unmount
+   useEffect(() => {
+     return () => {
+       if (abortControllerRef.current) {
+         abortControllerRef.current.abort();
+       }
+     };
+   }, []);
 
    useEffect(()=>{
     fetchTrending()
@@ -66,3 +92,4 @@ const Trending = () => {
 }
 
 export default Trending
+

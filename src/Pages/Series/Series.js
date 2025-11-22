@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import SingleContent from "../../Components/SingleContent/SingleContent";
 import CustomPagination from "../../Components/Pagination/CustomPagination";
 import Genres from "../../Components/Genres/Genres";
 import useGenres from "../../Hooks/UseGenre";
+import { API_KEY } from '../../config';
 
 const Series = () => {
   const [page, setPage] = useState(1);
@@ -10,23 +11,53 @@ const Series = () => {
   const [numOfPages, setNumOfPages] = useState();
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [genres, setGenres] = useState([]);
+  const abortControllerRef = useRef(null);
 
-  const API_KEY = "dc5e54f47e1adf658c0fca36e5332e8e";
   const genreURL = useGenres(selectedGenres);
 
   const fetchSeries = async () => {
-    const url = `https://api.themoviedb.org/3/discover/tv?api_key=${API_KEY}&page=${page}&with_genres=${genreURL}`;
+    // Cancel previous request if exists
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    abortControllerRef.current = new AbortController();
+    
+    try {
+      const url = `https://api.themoviedb.org/3/discover/tv?api_key=${API_KEY}&page=${page}&with_genres=${genreURL}`;
+      const res = await fetch(url, {
+        signal: abortControllerRef.current.signal,
+        cache: 'default',
+      });
+      
+      if (!res.ok) throw new Error('Network response was not ok');
+      
+      const data = await res.json();
+      setContent(data.results || []);
+      const totalPages = Math.min(data.total_pages || 1, 500);
+      setNumOfPages(totalPages);
 
-    const res = await fetch(url);
-    const data = await res.json();
-    setContent(data.results);
-    const totalPages = Math.min(data.total_pages || 1, 500);
-    setNumOfPages(totalPages);
-
-    if (page > totalPages) {
-      setPage(totalPages);
+      if (page > totalPages) {
+        setPage(totalPages);
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error("Error fetching series:", error);
+        setContent([]);
+      }
+    } finally {
+      abortControllerRef.current = null;
     }
   };
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     fetchSeries();

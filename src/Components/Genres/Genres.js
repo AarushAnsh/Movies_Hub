@@ -1,5 +1,6 @@
 import { Chip } from '@mui/material';
 import React, { useEffect } from 'react';
+import { API_KEY } from '../../config';
 
 const Genres = ({
   selectedGenres,
@@ -10,16 +11,16 @@ const Genres = ({
   setPage,
 }) => {
 
-  const API_KEY = "dc5e54f47e1adf658c0fca36e5332e8e";
-
   const fetchGenres = async () => {
     const url = `https://api.themoviedb.org/3/genre/${type}/list?api_key=${API_KEY}&language=en-US`;
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        cache: 'force-cache', // Genres don't change often, cache aggressively
+      });
       const data = await response.json();
 
-      setGenres(data.genres);
+      setGenres(data.genres || []);
     } catch (error) {
       console.error("Error fetching genres:", error);
     }

@@ -1,10 +1,11 @@
 import { Button, TextField, ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Tabs, Tab } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import SingleContent from "../../Components/SingleContent/SingleContent";
 import CustomPagination from "../../Components/Pagination/CustomPagination";
+import { API_KEY } from '../../config';
 
 const Search = () => {
   const [type, setType] = useState(0);
@@ -13,8 +14,7 @@ const Search = () => {
   const [content, setContent] = useState([]);
   const [numOfPages, setNumOfPages] = useState();
   const [hasSearched, setHasSearched] = useState(false);
-
-  const API_KEY = "dc5e54f47e1adf658c0fca36e5332e8e";
+  const abortControllerRef = useRef(null);
 
   const darkTheme = createTheme({
     palette: {
@@ -27,22 +27,54 @@ const Search = () => {
   const fetchSearch = async () => {
     if (!searchText) return;
 
-    const url = `https://api.themoviedb.org/3/search/${
-      type ? "tv" : "movie"
-    }?api_key=${API_KEY}&language=en-US&query=${searchText}&page=${page}`;
+    // Cancel previous request if exists
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    abortControllerRef.current = new AbortController();
 
-    const res = await fetch(url);
-    const data = await res.json();
+    try {
+      const url = `https://api.themoviedb.org/3/search/${
+        type ? "tv" : "movie"
+      }?api_key=${API_KEY}&language=en-US&query=${encodeURIComponent(searchText)}&page=${page}`;
 
-    setContent(data.results);
-    const totalPages = Math.min(data.total_pages || 1, 500);
-    setNumOfPages(totalPages);
-    setHasSearched(true);
+      const res = await fetch(url, {
+        signal: abortControllerRef.current.signal,
+        cache: 'default',
+      });
+      
+      if (!res.ok) throw new Error('Network response was not ok');
 
-    if (page > totalPages) {
-      setPage(totalPages);
+      const data = await res.json();
+
+      setContent(data.results || []);
+      const totalPages = Math.min(data.total_pages || 1, 500);
+      setNumOfPages(totalPages);
+      setHasSearched(true);
+
+      if (page > totalPages) {
+        setPage(totalPages);
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error("Error fetching search:", error);
+        setContent([]);
+        setHasSearched(true);
+      }
+    } finally {
+      abortControllerRef.current = null;
     }
   };
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {

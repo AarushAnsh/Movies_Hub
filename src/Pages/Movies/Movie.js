@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { useEffect } from 'react';
 import "./Movie.css"
 import { useBlocker } from 'react-router-dom';
@@ -6,6 +6,7 @@ import SingleContent from '../../Components/SingleContent/SingleContent';
 import CustomPagination from '../../Components/Pagination/CustomPagination';
 import Genres from '../../Components/Genres/Genres';
 import useGenres from '../../Hooks/UseGenre';
+import { API_KEY } from '../../config';
 
 
 const Movie = () => {
@@ -16,25 +17,52 @@ const Movie = () => {
   const [selectedGenres,setSelectedGenres]=useState([]);
   const[genres,setGenres]=useState([]);
   const genreURL =useGenres(selectedGenres)
-
-  
-
-  const API_KEY = "dc5e54f47e1adf658c0fca36e5332e8e";
+  const abortControllerRef = useRef(null);
 
  async function fetchMovie() {
-     const url = `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&page=${page}&with_genres=${genreURL}`;
+     // Cancel previous request if exists
+     if (abortControllerRef.current) {
+       abortControllerRef.current.abort();
+     }
+     
+     abortControllerRef.current = new AbortController();
+     
+     try {
+       const url = `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&page=${page}&with_genres=${genreURL}`;
+       const response = await fetch(url, {
+         signal: abortControllerRef.current.signal,
+         cache: 'default',
+       });
+       
+       if (!response.ok) throw new Error('Network response was not ok');
+       
+       const data = await response.json();
+       setContent(data.results || []);
 
-      const response = await fetch(url);
-      const data = await response.json();
-      setContent(data.results);
+       const totalPages = Math.min(data.total_pages || 1, 500);
+       setNumOfPages(totalPages);
 
-      const totalPages = Math.min(data.total_pages || 1, 500);
-      setNumOfPages(totalPages);
-
-      if (page > totalPages) {
-        setPage(totalPages);
-      }
+       if (page > totalPages) {
+         setPage(totalPages);
+       }
+     } catch (error) {
+       if (error.name !== 'AbortError') {
+         console.error("Error fetching movies:", error);
+         setContent([]);
+       }
+     } finally {
+       abortControllerRef.current = null;
+     }
     }
+    
+    // Cleanup on unmount
+    useEffect(() => {
+      return () => {
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
+      };
+    }, []);
  
     useEffect(()=>{
      fetchMovie()

@@ -33,35 +33,21 @@ export default function ContentModal({ children, media_type, id }) {
 
   const handleOpen = () => {
     setOpen(true);
-    fetchContent();
-    fetchVideo();
-    fetchCredits();
+    // Fetch all data in parallel for faster loading
+    Promise.all([
+      fetch(`https://api.themoviedb.org/3/${media_type}/${id}?api_key=${API_KEY}&language=en-US`, { cache: 'default' }).then(r => r.json()),
+      fetch(`https://api.themoviedb.org/3/${media_type}/${id}/videos?api_key=${API_KEY}`, { cache: 'default' }).then(r => r.json()),
+      fetch(`https://api.themoviedb.org/3/${media_type}/${id}/credits?api_key=${API_KEY}`, { cache: 'default' }).then(r => r.json())
+    ]).then(([contentData, videoData, creditsData]) => {
+      setContent(contentData);
+      setVideo(videoData.results?.[0]?.key);
+      setCast(creditsData.cast || []);
+    }).catch(error => {
+      console.error("Error fetching modal data:", error);
+    });
   };
 
   const handleClose = () => setOpen(false);
-
-  const fetchContent = async () => {
-    const res = await fetch(
-      `https://api.themoviedb.org/3/${media_type}/${id}?api_key=${API_KEY}&language=en-US`
-    );
-    setContent(await res.json());
-  };
-
-  const fetchVideo = async () => {
-    const res = await fetch(
-      `https://api.themoviedb.org/3/${media_type}/${id}/videos?api_key=${API_KEY}`
-    );
-    const data = await res.json();
-    setVideo(data.results?.[0]?.key);
-  };
-
-  const fetchCredits = async () => {
-    const res = await fetch(
-      `https://api.themoviedb.org/3/${media_type}/${id}/credits?api_key=${API_KEY}`
-    );
-    const data = await res.json();
-    setCast(data.cast);
-  };
 
   return (
     <div>
