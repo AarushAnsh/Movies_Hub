@@ -13,3 +13,17 @@ export const unavailableLandscape =
 // For Carousel
 export const noPicture =
   "https://upload.wikimedia.org/wikipedia/en/6/60/No_Picture.jpg";
+
+// TMDB API Key
+export const API_KEY = process.env.REACT_APP_TMDB_API_KEY || "dc5e54f47e1adf658c0fca36e5332e8e";
+
+// Fetch options for API calls
+export const fetchOptions = {
+  method: 'GET',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  },
+  mode: 'cors',
+  cache: 'default'
+};
